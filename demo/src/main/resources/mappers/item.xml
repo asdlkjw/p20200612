@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+  <mapper namespace="Item">
+  
+	<insert id="insertItemBatch" parameterType="java.util.List">
+		INSERT ALL
+			<foreach collection="list" item="obj" separator=" ">
+    		INTO EXAM_ITEM(IT_NO, IT_NA, IT_EXP, IT_PRICE, IT_ITNO, IT_DATE)
+	   		 VALUES(MY_GET_SEQ_NUMBER, #{obj.it_na}, #{obj.it_exp} , #{obj.it_price},#{obj.it_itno}, SYSDATE)
+        	</foreach>
+		SELECT * FROM DUAL
+	</insert>
+  
+   <insert id = "insertItem" parameterType="com.example.vo.ItemVO">
+  	INSERT INTO EXAM_ITEM(IT_NO, IT_NA, IT_EXP, IT_PRICE, IT_ITNO, IT_DATE)
+  	VALUES(#{it_no},#{it_na},#{it_exp},#{it_price},#{it_itno},SYSDATE})
+  	</insert>
+  	
+	<delete id="deleteItemBatch" parameterType="int">
+		DELETE FROM EXAM_ITEM WHERE IT_NO IN(
+		<foreach collection="array" item="tmp" separator=","> 
+			#{tmp}
+		</foreach>
+		)
+	</delete>
+	
+	<select id="selectItemWhere" resultType="com.example.vo.ItemVO"  parameterType="int">
+		SELECT * FROM EXAM_ITEM WHERE IT_NO IN(
+		<foreach collection="array" item="tmp" separator=","> 
+			#{tmp}
+		</foreach>
+		)
+	</select>
+
+
+  	<select id="list" parameterType="map" resultType="com.example.vo.ItemVO">
+  	SELECT* FROM
+	(SELECT 
+		IT_NO, IT_NA, IT_EXP, IT_PRICE, IT_ITNO, IT_DATE,
+		ROW_NUMBER() OVER (ORDER BY IT_NO DESC) ROWN
+	 FROM 
+		EXAM_ITEM)
+  	WHERE ROWN BETWEEN #{start} AND #{end}
+	</select>
+	
+	<select id ="count" resultType="int">
+		SELECT COUNT(*) FROM EXAM_ITEM
+	</select>
+	
+		<select id ="selectOne" parameterType="int" resultType="com.example.vo.ItemVO">
+			SELECT * FROM EXAM_ITEM WHERE IT_NO = #{no}
+	</select>
+	
+	 	<select id="listsearch" parameterType="String" resultType="com.example.vo.ItemVO">
+	  SELECT * FROM EXAM_ITEM WHERE IT_NA LIKE '%' || #{txt} || '%'
+ 	</select>
+ 	
+
+ 	<update id = "updateItemBatch" parameterType="java.util.List">
+		UPDATE EXAM_ITEM SET
+		    it_na=(
+		        CASE
+		        <foreach collection = "list" item="obj" separator=" ">
+		            WHEN it_no = #{obj.it_no} THEN #{obj.it_na}
+		        </foreach>
+		     	END
+		    ),
+		    it_price = (
+		    CASE
+		    	<foreach collection = "list" item="obj" separator=" ">
+		       		 WHEN it_no = #{obj.it_no} THEN #{obj.it_price}
+		  		</foreach>
+		    END
+		    ),
+		     it_exp=(
+		        CASE
+		     	<foreach collection = "list" item="obj" separator=" ">
+		       		 WHEN it_no = #{obj.it_no} THEN #{obj.it_exp}
+		  		</foreach>
+		        END
+		    ),
+		     it_itno=(
+		        CASE
+	            <foreach collection = "list" item="obj" separator=" ">
+		       		 WHEN it_no = #{obj.it_no} THEN #{obj.it_itno}
+		  		</foreach>
+		        END
+		    )
+		WHERE it_no IN (
+			<foreach collection = "list" item="obj" separator=",">
+		       		#{obj.it_no}
+		    </foreach>)
+ 	
+ 	</update>
+
+  </mapper>
